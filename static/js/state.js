@@ -43,16 +43,23 @@ function showCountySidebar(feature) {
 
 function showStateSidebar(stateName, stateFP) {
   const avg = App.getStateScore(stateFP);
-  let countyList = '';
-  App.selectedCountiesData.features.forEach(f => {
-    const score = App.getCountyScore(f.properties.GEOID);
-    if (score !== null) {
-      countyList += `
-        <li>
-          ${f.properties.NAME}: <strong>${score}</strong>
-        </li>`;
-    }
-  });
+
+  const sortedCounties = App.selectedCountiesData.features
+    .map(f => ({
+      name: f.properties.NAME,
+      geoid: f.properties.GEOID,
+      score: App.getCountyScore(f.properties.GEOID)
+    }))
+    .filter(county => county.score !== null)
+    .sort((a, b) => b.score - a.score); // highest to lowest
+
+  const countyList = sortedCounties
+    .map(county => `
+      <li>
+        ${county.name}: <strong>${county.score}</strong>
+      </li>
+    `)
+    .join('');
 
   document.getElementById('sidebar').innerHTML = `
     <button onclick="returnToUSView()" class="sidebar-button">Back to US</button>
